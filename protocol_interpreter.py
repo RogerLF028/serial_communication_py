@@ -203,7 +203,7 @@ def clear_tx_buffer(packet):
 def PI_message_arrived():
     return message_rx[read_packet].msg_check
 
-def PI_is_message_receive():
+def PI_is_serial_receive():
     data = serial_port.readline()
     if data:
         return data

@@ -65,29 +65,17 @@ async def request_data_from_modules():
         print("Init time")
         print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'))
 
-        # communication.COM_read_FW(list_modules[0].id)
-        # # print(f"finished at {time.strftime('%X')}")
-        # # await asyncio.sleep(0)
-        # communication.COM_read_digital_outputs(list_modules[0].id)
-        # # await asyncio.sleep(0)
-        # communication.COM_read_digital_inputs(list_modules[0].id)
-        # await asyncio.sleep(0.5)
-
         for idx in range(len(list_modules)):
-            #print(f"init at {time.strftime('%X')}")
-
             communication.COM_read_FW(list_modules[idx].id)
-            #print(f"finished at {time.strftime('%X')}")
-
-            #await asyncio.sleep(0)
+            await asyncio.sleep(0)
             communication.COM_read_digital_outputs(list_modules[idx].id)
-            #await asyncio.sleep(0)
+            await asyncio.sleep(0)
             communication.COM_read_digital_inputs(list_modules[idx].id)
             await asyncio.sleep(0.1)
         print("Final Time")
         print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'))
         #delay while
-        #await asyncio.sleep(0)
+        await asyncio.sleep(0.2)
     print("End Requests")
 
 async def print_test_async():
