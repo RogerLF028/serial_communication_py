@@ -3,7 +3,9 @@ import main
 import module_interface
 import protocol_interpreter
 import asyncio
+import time
 from enum import Enum
+from datetime import datetime
 
 BLOCKING = 0x00
 NON_BLOCKING = 0x01
@@ -138,17 +140,24 @@ def COM_read_digital_inputs(id_dest):
 async def COM_communication():
     #print('Task Communication')
     while (True):
-        #while(protocol_interpreter.PI_has_message_to_transmit() is True):
-        protocol_interpreter.PI_trasmit_message()
+        while(protocol_interpreter.PI_has_message_to_transmit() is True):
+            protocol_interpreter.PI_trasmit_message()
+            #time.sleep(0.01)
+            await asyncio.sleep(0)
         await asyncio.sleep(0.05)
     print("End task communication")
 
 
 async def COM_receive_serial():
     #print('Task Monitoring Receive')
+    protocol_interpreter.PI_set_serial_timeout(0.005)
     while (True):
         #print("Task receive")
+        print("Init time Serial receive")
+        print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'))
         data_serial = protocol_interpreter.PI_is_message_receive()
+        print("Final Time Serial receive")
+        print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'))
         if data_serial:
             print(data_serial)
             for data_byte in data_serial:
@@ -164,7 +173,7 @@ async def COM_receive_serial():
             #data_serial.clear()
         #else:
             #print("x")
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.005)
     print("End task receive serial")
 
 

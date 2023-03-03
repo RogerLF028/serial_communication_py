@@ -60,39 +60,49 @@ def update_digital_inputs(inputs, id_source):
 async def request_data_from_modules():
     #print('Task Request Data from Modules')
     # request_data()
+    communication.COM_read_FW(list_modules[0].id)
     while (True):
         print("Init time")
         print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'))
+
+        # communication.COM_read_FW(list_modules[0].id)
+        # # print(f"finished at {time.strftime('%X')}")
+        # # await asyncio.sleep(0)
+        # communication.COM_read_digital_outputs(list_modules[0].id)
+        # # await asyncio.sleep(0)
+        # communication.COM_read_digital_inputs(list_modules[0].id)
+        # await asyncio.sleep(0.5)
+
         for idx in range(len(list_modules)):
             #print(f"init at {time.strftime('%X')}")
 
             communication.COM_read_FW(list_modules[idx].id)
             #print(f"finished at {time.strftime('%X')}")
 
-            await asyncio.sleep(0)
+            #await asyncio.sleep(0)
             communication.COM_read_digital_outputs(list_modules[idx].id)
-            await asyncio.sleep(0)
+            #await asyncio.sleep(0)
             communication.COM_read_digital_inputs(list_modules[idx].id)
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.1)
         print("Final Time")
         print(datetime.utcnow().isoformat(sep=' ', timespec='milliseconds'))
         #delay while
-        await asyncio.sleep(0.5)
+        #await asyncio.sleep(0)
     print("End Requests")
 
 async def print_test_async():
     while (True):
         print("Teste Async")
-        await asyncio.sleep(0)
+        await asyncio.sleep(2)
 
 #--------------------------------------------------------------------------------------------------
 
 #Task principal, roda as demais tasks--------------------------------------------------------------
 async def main_tasks():
     #tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication(), print_test_async()]
-    tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication()]
+    tasks = [request_data_from_modules(), communication.COM_communication(), print_test_async(), communication.COM_receive_serial()]
+    #tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication()]
     res = await asyncio.gather(*tasks, return_exceptions=True)
-
     return res
     #await request_data_from_modules()
     #await communication.COM_communication()
@@ -105,6 +115,14 @@ async def main_tasks():
 #main
 if __name__ == '__main__':
     #list_modules=[]
+
+    #tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication()]
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main_tasks())
+        loop.run_until_complete(loop.shutdown_asyncgens())
+    finally:
+        loop.close()
 
     #list_modules.append(module_interface.ModuleInterface("Purificador de Água", communication.ID_WATER_PURIFICATOR))
 
@@ -124,5 +142,4 @@ if __name__ == '__main__':
     #     for idx in range(len(list_modules)):
     #         print("Module name: " + list_modules[idx].name + " id:" + str(list_modules[idx].id))
     #     communication.COM_read_FW()
-
 

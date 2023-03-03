@@ -4,7 +4,7 @@ from enum import Enum
 HOST = "WINDOWS"
 PORT_LINUX = '/dev/ttyUSB0'
 PORT_WINDOWS = 'COM3'
-BAUDRATE = 9600
+BAUDRATE = 115200
 
 # configuração da Serial
 if HOST == "LINUX":
@@ -50,37 +50,39 @@ class StatesOfProtocol(Enum):
 
 protocol_state = StatesOfProtocol.SYNC1
 
-BUFFER_SIZE = 100
-QTY_PACKETS = 10
+BUFFER_SIZE = 50
+QTY_PACKETS = 10*3
 
 
 class DataMsgType:
-    #data_msg_buffer = [BUFFER_SIZE]
-    data_msg_buffer = [0 for x in range(BUFFER_SIZE)]
-    idx_data_msg = None
-    data_size = None
-    msg_check = False
-    checksum = None
-    source_id = None
-    dest_id = None
+    def __init__(self):
+        self.data_msg_buffer = [0 for x in range(BUFFER_SIZE)]
+        self.idx_data_msg = None
+        self.data_size = None
+        self.msg_check = False
+        self.checksum = None
+        self.source_id = None
+        self.dest_id = None
 
 
 # struct de msg transmitida
 class DataToTransmitType:
-    #tx_buffer = [BUFFER_SIZE + SIZE_PROTOCOL_HEADER + SIZE_CHECKSUM]
-    tx_buffer = [0 for x in range(BUFFER_SIZE + SIZE_PROTOCOL_HEADER + SIZE_CHECKSUM)]
-    data_size = None
-    idx_tx = None
+    def __init__(self):
+        self.tx_buffer = [0 for x in range(BUFFER_SIZE + SIZE_PROTOCOL_HEADER + SIZE_CHECKSUM)]
+        self.data_size = None
+        self.idx_tx = None
 
 
 # lista de msg rx
 message_rx = []
 for i in range(QTY_PACKETS):
-    message_rx.append(DataMsgType)
+    message_rx.append(DataMsgType())
+print(message_rx)
 # lista de msg tx
 message_tx = []
 for i in range(QTY_PACKETS):
-    message_tx.append(DataToTransmitType)
+    message_tx.append(DataToTransmitType())
+print(message_tx)
 
 # rx
 receive_packet = 0  # indice do pacote recebido na lista de msg
@@ -121,28 +123,33 @@ def PI_send_message(data, size, dest):
     message_tx[write_packet].tx_buffer[SIZE_PROTOCOL_HEADER + size] = checksum
     message_tx[write_packet].data_size = SIZE_PROTOCOL_HEADER + size + SIZE_CHECKSUM
 
-    #print(message_tx[write_packet].tx_buffer)
+    print("Write packet:"+str(message_tx[write_packet].tx_buffer))
 
     # incrementa contagem de pacotes escrito - a ser enviado
     write_packet += 1
     if write_packet >= QTY_PACKETS:
         write_packet = 0
-    #print(f"write_packet {write_packet}")
+    print(f"write_packet {write_packet}")
+
 
 
 # trasnmite as mensagens inteira armazendas na lista de envio - blocking
 def PI_trasmit_message():
     global transmit_packet, write_packet
+
     # vefirica se há diferença entre pacote transmitido e escrito
     if transmit_packet != write_packet:
         # envia o buffer de transmissão completo na usart
         # equivalente -> io_write(&SERIAL.io, message_tx[transmit_packet].tx_buffer, message_tx[transmit_packet].data_size)
         serial_port.write(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
         #print(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
+        print("Transmit packet:" + str(message_tx[transmit_packet].tx_buffer))
         # incrementa contagem de pacote enviado
         transmit_packet += 1
         if transmit_packet >= QTY_PACKETS:
             transmit_packet = 0
+        print(f"transmit_packet {transmit_packet}")
+
 
 def PI_has_message_to_transmit():
     if transmit_packet != write_packet:
@@ -187,6 +194,7 @@ def clear_message_rx(packet):
 # limpa a struct das mensagens transmitidas
 def clear_tx_buffer(packet):
     #print(f"Clear TX Buffer packet {packet}")
+    message_tx[packet].tx_buffer = [0 for x in range(BUFFER_SIZE + SIZE_PROTOCOL_HEADER + SIZE_CHECKSUM)]
     message_tx[packet].idx_tx = 0
     message_tx[packet].data_size = 0
 
@@ -203,6 +211,8 @@ def PI_is_message_receive():
         return False
 
 
+def PI_set_serial_timeout(time):
+    serial_port.timeout = time
 
 # lê uma mensagem, retorna o tamanho da msg
 # tambem retorna o valor de id de origem da msg, junto com os dados da msg
@@ -295,4 +305,3 @@ def PI_protocol_organize_receive_data(data):
         protocol_state = StatesOfProtocol.SYNC1
     else:  # default
         protocol_state = StatesOfProtocol.SYNC1
-
