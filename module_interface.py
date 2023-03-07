@@ -1,28 +1,23 @@
 
+ANALOG_INPUT_SIZE = 16
+ANALOG_OUTPUT_SIZE = 4
+DIGITAL_INPUT_SIZE = 8
+DIGITAL_OUTPUT_SIZE = 24
 class ModuleInterface:
-    firmware = [0,0,0]
-    name = "name"
-    id = 0x00
+
     def __init__(self, name, id):
-        analog_input = []
-        for i in range(16):
-            analog_input.append(0)
-        #print(analog_input)
 
-        analog_output = []
-        for i in range(4):
-            analog_output.append(0)
-        #print(analog_output)
+        self.analog_input = [0 for x in range(ANALOG_INPUT_SIZE)]
+        self.analog_output = [0 for x in range(ANALOG_OUTPUT_SIZE)]
+        self.digital_input = [False for x in range(DIGITAL_INPUT_SIZE)]
+        self.digital_output = [False for x in range(DIGITAL_OUTPUT_SIZE)]
+        self. firmware = [0, 0, 0]
 
-        digital_output = []
-        for i in range(24):
-            digital_output.append(False)
-        #print(digital_output)
-
-        digital_input = []
-        for i in range(8):
-            digital_input.append(False)
-        #print(digital_input)
+        print("chamada inicial dos modulos")
+        print(self.analog_input)
+        print(self.analog_output)
+        print(self.digital_input)
+        print(self.digital_output)
 
         self.name = name
-        self.id=  id
+        self.id = id

@@ -123,13 +123,13 @@ def PI_send_message(data, size, dest):
     message_tx[write_packet].tx_buffer[SIZE_PROTOCOL_HEADER + size] = checksum
     message_tx[write_packet].data_size = SIZE_PROTOCOL_HEADER + size + SIZE_CHECKSUM
 
-    print("Write packet:"+str(message_tx[write_packet].tx_buffer))
+    #print("Write packet:"+str(message_tx[write_packet].tx_buffer))
 
     # incrementa contagem de pacotes escrito - a ser enviado
     write_packet += 1
     if write_packet >= QTY_PACKETS:
         write_packet = 0
-    print(f"write_packet {write_packet}")
+    #print(f"write_packet {write_packet}")
 
 
 
@@ -143,12 +143,12 @@ def PI_trasmit_message():
         # equivalente -> io_write(&SERIAL.io, message_tx[transmit_packet].tx_buffer, message_tx[transmit_packet].data_size)
         serial_port.write(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
         #print(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
-        print("Transmit packet:" + str(message_tx[transmit_packet].tx_buffer))
+        #print("Transmit packet:" + str(message_tx[transmit_packet].tx_buffer))
         # incrementa contagem de pacote enviado
         transmit_packet += 1
         if transmit_packet >= QTY_PACKETS:
             transmit_packet = 0
-        print(f"transmit_packet {transmit_packet}")
+        #print(f"transmit_packet {transmit_packet}")
 
 
 def PI_has_message_to_transmit():
