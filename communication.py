@@ -40,15 +40,6 @@ TAG_WRITE_TARGET_PEM_POWER = 0x95
 class Communication:
     list_modules = []
 
-    # # Equivalente ao Callback da interrupção de RX
-    # def serial_rx_callback():
-    #     # equivalente -> io_read(&SERIAL.io, &data_byte, 1)
-    #     data_byte = protocol_interpreter.PI_receive_data_byte()
-    #     protocol_interpreter.PI_protocol_organize_receive_data(data_byte)
-    #
-    #     if protocol_interpreter.PI_message_arrived() is True:
-    #         data, size, id_source = protocol_interpreter.PI_read_message()
-    #         process_data_read(data, size, id_source)
 
     # Processo os dados recebidos na serial
     # Avalia a TAG e define o que será realizado
@@ -93,6 +84,7 @@ class Communication:
         # elif tag == TAG_READ_ANALOG_INPUT_BLOCK_B:
         # elif tag == TAG_READ_DIGITAL_INPUTS:
 
+# Leitura---------------------------------------------------------------------------------------------------------------
     def read_fw_version(self, data, id_source):
         firmware = [data[0], data[1], data[2]]
         # main.update_firmware(firmware, id_source)
@@ -184,7 +176,9 @@ class Communication:
         #print("analog "+str(idx)+" : "+str(analog_input))
         index = define_modules.module_id.index(id_source)
         self.list_modules[index].analog_input[idx] = analog_input
+# end Leitura-----------------------------------------------------------------------------------------------------------
 
+# Requisição de Leitura-------------------------------------------------------------------------------------------------
     # Envios de comando para a serial
     def COM_read_FW(self, id_dest):
         data = []
@@ -245,6 +239,8 @@ class Communication:
         data.append(TAG_READ_ANALOG_INPUT_BLOCK_B)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
+#end Requisção de leitura-----------------------------------------------------------------------------------------------
+
     # Função assincrona que realiza a transmissão de pacotes pela serial
     async def COM_communication(self):
         # print('Task Communication')
@@ -284,19 +280,6 @@ class Communication:
             print("Teste Async")
             await asyncio.sleep(3)
 
-    # asyncio.run(communication(), print_test_async())
-    # asyncio.run(print_test_async())
-
-    # async def main_communication():
-    #     await communication()
-    #     await print_test_async()
-    #     # await asyncio.wait([
-    #     #     communication(),
-    #     #     print_test_async()
-    #     # ])
-    #
-    # loop=asyncio.get_event_loop()
-    # loop.run_until_complete(main_communication())
 
     def COM_read_list_modules(self):
         return self.list_modules

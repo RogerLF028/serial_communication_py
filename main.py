@@ -4,6 +4,7 @@ import asyncio
 import define_modules
 from datetime import datetime
 
+# Criação da lista de Modulos de Interface------------------------------------------------------------------------------
 list_modules = []
 
 for name in define_modules.module_names:
@@ -23,41 +24,18 @@ for name in define_modules.module_names:
         list_modules.append(module_interface.ModuleInterface(name, define_modules.ID_GAS_SENSES))
         idxm_gases = 4
 
-print(list_modules)
-print(len(list_modules))
+# print(list_modules)
 
+# Cria o objeto da comunicação, envia a lista de objetos modulos
 communication = Communication(list_modules)
 
 
 # -----------------------------------------------------------------------------------------------------------------------
 
-# def update_firmware(firmware, id_source):
-#     index = define_modules.module_id.index(id_source)
-#     #print("Index : "+str(index))
-#     #print("Module name Firmware Update: " + list_modules[index].name + " id:" + str(list_modules[index].id))
-#     list_modules[index].firmware = firmware
-#     #print("Update firmware")
-#
-# def update_digital_outputs(outputs, id_source):
-#     index = define_modules.module_id.index(id_source)
-#     list_modules[index].digital_output = outputs
-#     #print("Update digital outputs")
-#
-# def update_digital_inputs(inputs, id_source):
-#     index = define_modules.module_id.index(id_source)
-#     list_modules[index].digital_input = inputs
-#     #print("Update digital inputs")
-#
-# def update_analog_output(analog_output, idx, id_source):
-#     index = define_modules.module_id.index(id_source)
-#     list_modules[index].analog_output[idx] = analog_output
-#
-# def update_analog_input(analog_input, idx, id_source):
-#     index = define_modules.module_id.index(id_source)
-#     list_modules[index].analog_input[idx] = analog_input
 
+# rotinas TASKs---------------------------------------------------------------------------------------------------------
 
-# rotinas TASKs-------------------------------------------------------------------------------------
+# Realiza a requisição de dados dos Modulos (loop)
 async def request_data_from_modules():
     print('Task Request Data from Modules')
     # request_data()
@@ -85,18 +63,21 @@ async def request_data_from_modules():
     print("End Requests")
 
 
+# Printa informações dos modulos (teste)
 async def print_info_modules():
     print('Task Print Infos')
     while True:
-        for idx in range(len(communication.list_modules)):
-            print("Module name: " + communication.list_modules[idx].name + " id:" + str(communication.list_modules[idx].id))
+        for idx in range(len(list_modules)):
+            print("Module name: " + list_modules[idx].name + " id:" + str(list_modules[idx].id))
             print("     Analog Inputs: ")
-            print(communication.list_modules[idx].analog_input)
-            #for i in range(len(list_modules[idx].analog_input)):
-                #print(list_modules[idx].analog_input[i])
+            print(list_modules[idx].analog_input)
+            # for i in range(len(list_modules[idx].analog_input)):
+            # print(list_modules[idx].analog_input[i])
         await asyncio.sleep(1)
 
 
+# Atualiza a lista de modulos a partir das modificações da lista pela Comunicação
+# não necessario, pois o obejeto alterado em comunicação é o meemo enviado????
 async def update_list_modules():
     while (True):
         list_modules = communication.COM_read_list_modules()
@@ -113,47 +94,23 @@ async def print_test_async():
 
 # Task principal, roda as demais tasks--------------------------------------------------------------
 async def main_tasks():
+    # Cria lista de tarefas
     # tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication(), print_test_async()]
     tasks = [request_data_from_modules(), communication.COM_communication(), print_info_modules(),
-             communication.COM_receive_serial(), update_list_modules()]
+             communication.COM_receive_serial()]
     # tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication()]
     res = await asyncio.gather(*tasks, return_exceptions=True)
     return res
-    # await request_data_from_modules()
-    # await communication.COM_communication()
-    # await print_test_async()
 
 
-# loop=asyncio.get_event_loop()
-# loop.run_until_complete(main_communication())
 # --------------------------------------------------------------------------------------------------
 
 # main
 if __name__ == '__main__':
-    # list_modules=[]
 
-    # tasks = [request_data_from_modules(), communication.COM_receive_serial(), communication.COM_communication()]
     loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(main_tasks())
         loop.run_until_complete(loop.shutdown_asyncgens())
     finally:
         loop.close()
-
-    # list_modules.append(module_interface.ModuleInterface("Purificador de Água", communication.ID_WATER_PURIFICATOR))
-
-    print("Module name: " + module_interface.ModuleInterface.name + " id:" + str(module_interface.ModuleInterface.id))
-
-    for idx in range(len(list_modules)):
-        print("Module name: " + list_modules[idx].name + " id:" + str(list_modules[idx].id))
-
-    print("Module name: " + list_modules[idxm_pem].name + " id:" + str(list_modules[idxm_pem].id))
-
-    res = asyncio.get_event_loop().run_until_complete(main_tasks())
-    print(res)
-
-    # while True:
-    #
-    #     for idx in range(len(list_modules)):
-    #         print("Module name: " + list_modules[idx].name + " id:" + str(list_modules[idx].id))
-    #     communication.COM_read_FW()

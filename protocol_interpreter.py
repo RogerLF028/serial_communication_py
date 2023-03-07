@@ -1,6 +1,8 @@
 import serial
 from enum import Enum
 
+
+# Definição da porta serial---------------------------------------------------------------------------------------------
 HOST = "WINDOWS"
 PORT_LINUX = '/dev/ttyUSB0'
 PORT_WINDOWS = 'COM3'
@@ -20,7 +22,7 @@ elif HOST == "WINDOWS":
 
 serial_port.read_all()
 serial_port.flush()
-
+#-----------------------------------------------------------------------------------------------------------------------
 
 id_communication = 0x01  # Id do PC
 
@@ -51,7 +53,7 @@ class StatesOfProtocol(Enum):
 protocol_state = StatesOfProtocol.SYNC1
 
 BUFFER_SIZE = 50
-QTY_PACKETS = 10*3
+QTY_PACKETS = 10 * 3
 
 
 class DataMsgType:
@@ -91,7 +93,7 @@ read_packet = 0  # indice do pacote lido na lista de msg
 transmit_packet = 0  # indice do pacote a ser trasnmitido na lista de msg
 write_packet = 0  # indice do pacote escrito na lista de msg
 
-
+# seta o id (PC-Pyhton)
 def PI_set_id_communication(id):
     global id_communication
     id_communication = id
@@ -116,21 +118,20 @@ def PI_send_message(data, size, dest):
     # data e checksum
     checksum = size
     for i in range(size):
-        message_tx[write_packet].tx_buffer[i+SIZE_PROTOCOL_HEADER] = data[i]
+        message_tx[write_packet].tx_buffer[i + SIZE_PROTOCOL_HEADER] = data[i]
         checksum += data[i]
     # checksum
     checksum = ((~checksum) + 1) & 0xFF
     message_tx[write_packet].tx_buffer[SIZE_PROTOCOL_HEADER + size] = checksum
     message_tx[write_packet].data_size = SIZE_PROTOCOL_HEADER + size + SIZE_CHECKSUM
 
-    #print("Write packet:"+str(message_tx[write_packet].tx_buffer))
+    # print("Write packet:"+str(message_tx[write_packet].tx_buffer))
 
     # incrementa contagem de pacotes escrito - a ser enviado
     write_packet += 1
     if write_packet >= QTY_PACKETS:
         write_packet = 0
-    #print(f"write_packet {write_packet}")
-
+    # print(f"write_packet {write_packet}")
 
 
 # trasnmite as mensagens inteira armazendas na lista de envio - blocking
@@ -142,20 +143,21 @@ def PI_trasmit_message():
         # envia o buffer de transmissão completo na usart
         # equivalente -> io_write(&SERIAL.io, message_tx[transmit_packet].tx_buffer, message_tx[transmit_packet].data_size)
         serial_port.write(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
-        #print(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
-        #print("Transmit packet:" + str(message_tx[transmit_packet].tx_buffer))
+        # print(message_tx[transmit_packet].tx_buffer[0:message_tx[transmit_packet].data_size])
+        # print("Transmit packet:" + str(message_tx[transmit_packet].tx_buffer))
         # incrementa contagem de pacote enviado
         transmit_packet += 1
         if transmit_packet >= QTY_PACKETS:
             transmit_packet = 0
-        #print(f"transmit_packet {transmit_packet}")
+        # print(f"transmit_packet {transmit_packet}")
 
-
+# Verifica se há msg para transmitir
 def PI_has_message_to_transmit():
     if transmit_packet != write_packet:
         return True
     else:
         return False
+
 
 # trasnmite as mensagens armazendas na lista de envio byte a byte - non blocking
 def PI_transmit_message_byte_to_byte():
@@ -174,16 +176,19 @@ def PI_transmit_message_byte_to_byte():
             if transmit_packet >= QTY_PACKETS:
                 transmit_packet = 0
 
+# Lê um byte
 def PI_receive_data_byte():
     data_byte = serial_port.read(1)
     return data_byte
 
+# Lê uma sequencia de bytes
 def PI_receive_data():
     data_bytes = serial_port.readline()
     size = len(data_bytes)
     return data_bytes, size
 
-# limpa a struct das mensagens recebidas
+
+# Limpa a struct das mensagens recebidas
 def clear_message_rx(packet):
     message_rx[packet].idx_data_msg = 0
     message_rx[packet].data_size = 0
@@ -191,18 +196,20 @@ def clear_message_rx(packet):
     message_rx[packet].msg_check = False
 
 
-# limpa a struct das mensagens transmitidas
+# Limpa a struct das mensagens transmitidas
 def clear_tx_buffer(packet):
-    #print(f"Clear TX Buffer packet {packet}")
+    # print(f"Clear TX Buffer packet {packet}")
     message_tx[packet].tx_buffer = [0 for x in range(BUFFER_SIZE + SIZE_PROTOCOL_HEADER + SIZE_CHECKSUM)]
     message_tx[packet].idx_tx = 0
     message_tx[packet].data_size = 0
 
 
-# verifica se recebeu uma mensagem
+# verifica se recebeu uma mensagem (passou pelo checksum)
 def PI_message_arrived():
     return message_rx[read_packet].msg_check
 
+
+# Verifica se recebeu algo na serial, se sim retorna os dados recebidos
 def PI_is_serial_receive():
     data = serial_port.readline()
     if data:
@@ -210,28 +217,28 @@ def PI_is_serial_receive():
     else:
         return False
 
-
+# Altera o valor de Timeout da Serial (timeout é blocking)
 def PI_set_serial_timeout(time):
     serial_port.timeout = time
+
 
 # lê uma mensagem, retorna o tamanho da msg
 # tambem retorna o valor de id de origem da msg, junto com os dados da msg
 def PI_read_message():
-    #data, size, id_source = None
+    # data, size, id_source = None
     global read_packet, receive_packet
 
     # vefirica se há diferença entre pacote recebido e lido
     if read_packet != receive_packet:
         # atualiza o tamanho da msg
         size = message_rx[read_packet].data_size
-        #print("Size: "+str(size))
+        # print("Size: "+str(size))
         # lê a msg do buffer rx
-        # memcpy(message_rx[read_packet].data_msg_buffer, data, size)
         data = message_rx[read_packet].data_msg_buffer[0:size]
-        #print("Data: " + str(data))
+        # print("Data: " + str(data))
         # Lê de qual id foi recebido a msg
         id_source = message_rx[read_packet].source_id
-        #print("ID: " + str(id_source))
+        # print("ID: " + str(id_source))
         # limpa a mensagem
         clear_message_rx(read_packet)
         # incrementa a contagem de msg lida
@@ -240,7 +247,7 @@ def PI_read_message():
             read_packet = 0
     return data, size, id_source
 
-
+# Função que realiza a interpretação do protocolo
 def PI_protocol_organize_receive_data(data):
     global protocol_state, receive_packet
 
@@ -271,6 +278,7 @@ def PI_protocol_organize_receive_data(data):
         else:
             protocol_state = StatesOfProtocol.SYNC1
     # fim do sincronismo
+    # verificação de id
     elif protocol_state == StatesOfProtocol.DEST_ID:
         if data == id_communication:
             message_rx[receive_packet].dest_id = data
@@ -280,6 +288,7 @@ def PI_protocol_organize_receive_data(data):
     elif protocol_state == StatesOfProtocol.SOURCE_ID:
         message_rx[receive_packet].source_id = data
         protocol_state = StatesOfProtocol.SIZE
+    # tamanho da msg
     elif protocol_state == StatesOfProtocol.SIZE:
         message_rx[receive_packet].data_size = data
         message_rx[receive_packet].checksum += data

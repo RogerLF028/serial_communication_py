@@ -7,6 +7,6 @@ ID_GAS_SENSES = 0x05
 ID_PEM_POWER_CONTROL = 0x06
 
 
-#ciar a lista de modulos, com nomes, id e indexes-----------------------------------------------------------------------
+#Lista de Modulos,  com nomes, id e indexes-----------------------------------------------------------------------
 module_names = ["Purificador de Água", "Eletrolizador", "Interface Motor", "Potência-PEM", "Monitoramneto de Gases"]
 module_id = [ID_WATER_PURIFICATOR, ID_ELECTROLIZER, ID_MOTOR_SENSES, ID_PEM_POWER_CONTROL, ID_GAS_SENSES]
