@@ -23,8 +23,8 @@ TAG_READ_ANALOG_OUTPUT_3 = 0x13
 TAG_READ_ANALOG_OUTPUT_4 = 0x14
 TAG_READ_ANALOG_OUTPUTS = 0x15
 TAG_READ_TARGET_PEM_POWER = 0x16
-TAG_READ_ANALOG_INPUT_BLOCK_A = 0x17
-TAG_READ_ANALOG_INPUT_BLOCK_B = 0x18
+TAG_READ_ANALOG_INPUTS_BLOCK_A = 0x17
+TAG_READ_ANALOG_INPUTS_BLOCK_B = 0x18
 TAG_READ_ANALOG_INPUTS = 0x19
 TAG_READ_DIGITAL_INPUTS = 0x1A
 
@@ -35,6 +35,14 @@ TAG_WRITE_ANALOG_OUTPUT_2 = 0x92
 TAG_WRITE_ANALOG_OUTPUT_3 = 0x93
 TAG_WRITE_ANALOG_OUTPUT_4 = 0x94
 TAG_WRITE_TARGET_PEM_POWER = 0x95
+
+
+# Feeedback Status
+WRITE_ERROR = 0xFF
+WRITE_OK = 0x00
+WRITE_SIZEERROR = 0x01
+WRITE_OUTOFBOUND = 0x02
+WRITE_QUEUE_ERROR = 0x03
 
 
 class Communication:
@@ -65,24 +73,46 @@ class Communication:
             self.read_analog_outputs(data_info, id_source)
         elif tag == TAG_READ_TARGET_PEM_POWER:
             print("Comando para o Sistema de potência")
-        elif tag == TAG_READ_ANALOG_INPUT_BLOCK_A:
+        elif tag == TAG_READ_ANALOG_INPUTS_BLOCK_A:
             self.read_analog_input_block_A(data_info, id_source)
-        elif tag == TAG_READ_ANALOG_INPUT_BLOCK_B:
+        elif tag == TAG_READ_ANALOG_INPUTS_BLOCK_B:
             self.read_analog_input_block_B(data_info, id_source)
         elif tag == TAG_READ_ANALOG_INPUTS:
             self.read_analog_inputs(data_info, id_source)
+        elif tag == TAG_WRITE_DIGITAL_OUTPUTS:
+            index = define_modules.module_id.index(id_source)
+            if data_info[0] == WRITE_OK:
+                self.list_modules[index].digital_outputs_has_been_written = True
+            elif data_info[0] == WRITE_ERROR:
+                self.list_modules[index].digital_outputs_has_been_written = False
+        elif tag == TAG_WRITE_ANALOG_OUTPUT_1:
+            index = define_modules.module_id.index(id_source)
+            if data_info[0] == WRITE_OK:
+                self.list_modules[index].analog_output1_has_been_written = True
+            elif data_info[0] == WRITE_ERROR:
+                self.list_modules[index].analog_output1_has_been_written = False
+        elif tag == TAG_WRITE_ANALOG_OUTPUT_2:
+            index = define_modules.module_id.index(id_source)
+            if data_info[0] == WRITE_OK:
+                self.list_modules[index].analog_output2_has_been_written = True
+            elif data_info[0] == WRITE_ERROR:
+                self.list_modules[index].analog_output2_has_been_written = False
+        elif tag == TAG_WRITE_ANALOG_OUTPUT_3:
+            index = define_modules.module_id.index(id_source)
+            if data_info[0] == WRITE_OK:
+                self.list_modules[index].analog_output3_has_been_written = True
+            elif data_info[0] == WRITE_ERROR:
+                self.list_modules[index].analog_output3_has_been_written = False
+        elif tag == TAG_WRITE_ANALOG_OUTPUT_4:
+            index = define_modules.module_id.index(id_source)
+            if data_info[0] == WRITE_OK:
+                self.list_modules[index].analog_output4_has_been_written = True
+            elif data_info[0] == WRITE_ERROR:
+                self.list_modules[index].analog_output4_has_been_written = False
         else:
             print("TAG not found")
             return False
         return True
-        # elif tag == TAG_READ_ANALOG_OUTPUT_1:
-        # elif tag == TAG_READ_ANALOG_OUTPUT_2:
-        # elif tag ==TAG_READ_ANALOG_OUTPUT_3:
-        # elif tag == TAG_READ_ANALOG_OUTPUT_4:
-        # elif tag == TAG_READ_TARGET_PEM_POWER:
-        # elif tag == TAG_READ_ANALOG_INPUT_BLOCK_A:
-        # elif tag == TAG_READ_ANALOG_INPUT_BLOCK_B:
-        # elif tag == TAG_READ_DIGITAL_INPUTS:
 
 # Leitura---------------------------------------------------------------------------------------------------------------
     def read_fw_version(self, data, id_source):
@@ -233,12 +263,48 @@ class Communication:
 
     def COM_read_analog_inputs(self, id_dest):
         data = []
-        data.append(TAG_READ_ANALOG_INPUT_BLOCK_A)
+        data.append(TAG_READ_ANALOG_INPUTS_BLOCK_A)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
         data = []
-        data.append(TAG_READ_ANALOG_INPUT_BLOCK_B)
+        data.append(TAG_READ_ANALOG_INPUTS_BLOCK_B)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
+    def COM_write_analog_output_1(self, id_dest, value):
+        data = []
+        data.append(TAG_WRITE_ANALOG_OUTPUT_1)
+        data.append(value & 0xFF)
+        data.append((value<<8) & 0xFF)
+        protocol_interpreter.PI_send_message(data, len(data), id_dest)
+
+    def COM_write_analog_output_2(self, id_dest, value):
+        data = []
+        data.append(TAG_WRITE_ANALOG_OUTPUT_2)
+        data.append(value & 0xFF)
+        data.append((value<<8) & 0xFF)
+        protocol_interpreter.PI_send_message(data, len(data), id_dest)
+
+    def COM_write_analog_output_3(self, id_dest, value):
+        data = []
+        data.append(TAG_WRITE_ANALOG_OUTPUT_3)
+        data.append(value & 0xFF)
+        data.append((value<<8) & 0xFF)
+        protocol_interpreter.PI_send_message(data, len(data), id_dest)
+
+    def COM_write_analog_output_4(self, id_dest, value):
+        data = []
+        data.append(TAG_WRITE_ANALOG_OUTPUT_4)
+        data.append(value & 0xFF)
+        data.append((value<<8) & 0xFF)
+        protocol_interpreter.PI_send_message(data, len(data), id_dest)
+
+    def COM_write_digital_outputs(self, id_dest, value):
+        data = []
+        data.append(TAG_WRITE_DIGITAL_OUTPUTS)
+        data.append(value & 0xFF)
+        data.append((value << 8) & 0xFF)
+        data.append((value << 16) & 0xFF)
+        data.append((value << 24) & 0xFF)
+        protocol_interpreter.PI_send_message(data, len(data), id_dest)
 #end Requisção de leitura-----------------------------------------------------------------------------------------------
 
     # Função assincrona que realiza a transmissão de pacotes pela serial

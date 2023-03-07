@@ -13,6 +13,12 @@ class ModuleInterface:
         self.digital_output = [False for x in range(DIGITAL_OUTPUT_SIZE)]
         self. firmware = [0, 0, 0]
 
+        self.digital_outputs_has_been_written = False
+        self.analog_output1_has_been_written = False
+        self.analog_output2_has_been_written = False
+        self.analog_output3_has_been_written = False
+        self.analog_output4_has_been_written = False
+
         print("chamada inicial dos modulos")
         print(self.analog_input)
         print(self.analog_output)
