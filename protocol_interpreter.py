@@ -7,6 +7,7 @@ HOST = "WINDOWS"
 PORT_LINUX = '/dev/ttyUSB0'
 PORT_WINDOWS = 'COM3'
 BAUDRATE = 115200
+serial.Serial()
 
 # configuração da Serial
 if HOST == "LINUX":
@@ -150,6 +151,10 @@ def PI_trasmit_message():
         if transmit_packet >= QTY_PACKETS:
             transmit_packet = 0
         # print(f"transmit_packet {transmit_packet}")
+
+def PI_get_RI():
+    return serial_port.getRI()
+    #return serial_port.
 
 # Verifica se há msg para transmitir
 def PI_has_message_to_transmit():
@@ -295,7 +300,14 @@ def PI_protocol_organize_receive_data(data):
         protocol_state = StatesOfProtocol.DATA
     # inicio dos dados
     elif protocol_state == StatesOfProtocol.DATA:
-        message_rx[receive_packet].data_msg_buffer[message_rx[receive_packet].idx_data_msg] = data
+        try:
+            message_rx[receive_packet].data_msg_buffer[message_rx[receive_packet].idx_data_msg] = data
+        except Exception as e:
+            print ("Organizer Exception: " + str(e))
+            print("data: "+str(data))
+            print("message RX: "+str(message_rx))
+            print("receive packet: "+str(receive_packet))
+            print("idx_data_msg: "+str(message_rx[receive_packet].idx_data_msg))
         message_rx[receive_packet].checksum += data
         message_rx[receive_packet].idx_data_msg += 1
         if message_rx[receive_packet].idx_data_msg < message_rx[receive_packet].data_size:

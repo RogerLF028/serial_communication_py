@@ -261,7 +261,7 @@ class Communication:
         data.append(TAG_READ_ANALOG_OUTPUTS)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
-    def COM_read_analog_inputs(self, id_dest):
+    def COM_read_analog_inputs_per_block(self, id_dest):
         data = []
         data.append(TAG_READ_ANALOG_INPUTS_BLOCK_A)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
@@ -269,42 +269,49 @@ class Communication:
         data.append(TAG_READ_ANALOG_INPUTS_BLOCK_B)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
+    def COM_read_analog_inputs(self, id_dest):
+        data = []
+        data.append(TAG_READ_ANALOG_INPUTS)
+        protocol_interpreter.PI_send_message(data, len(data), id_dest)
+
     def COM_write_analog_output_1(self, id_dest, value):
         data = []
         data.append(TAG_WRITE_ANALOG_OUTPUT_1)
         data.append(value & 0xFF)
-        data.append((value<<8) & 0xFF)
+        data.append((value>>8) & 0xFF)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
     def COM_write_analog_output_2(self, id_dest, value):
         data = []
         data.append(TAG_WRITE_ANALOG_OUTPUT_2)
         data.append(value & 0xFF)
-        data.append((value<<8) & 0xFF)
+        data.append((value>>8) & 0xFF)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
     def COM_write_analog_output_3(self, id_dest, value):
         data = []
         data.append(TAG_WRITE_ANALOG_OUTPUT_3)
         data.append(value & 0xFF)
-        data.append((value<<8) & 0xFF)
+        data.append((value>>8) & 0xFF)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
     def COM_write_analog_output_4(self, id_dest, value):
         data = []
         data.append(TAG_WRITE_ANALOG_OUTPUT_4)
         data.append(value & 0xFF)
-        data.append((value<<8) & 0xFF)
+        data.append((value>>8) & 0xFF)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
 
     def COM_write_digital_outputs(self, id_dest, value):
         data = []
         data.append(TAG_WRITE_DIGITAL_OUTPUTS)
         data.append(value & 0xFF)
-        data.append((value << 8) & 0xFF)
-        data.append((value << 16) & 0xFF)
-        data.append((value << 24) & 0xFF)
+        data.append((value >> 8) & 0xFF)
+        data.append((value >> 16) & 0xFF)
+        data.append((value >> 24) & 0xFF)
         protocol_interpreter.PI_send_message(data, len(data), id_dest)
+        print("write outputs")
+        print(data)
 #end Requisção de leitura-----------------------------------------------------------------------------------------------
 
     # Função assincrona que realiza a transmissão de pacotes pela serial
@@ -318,8 +325,11 @@ class Communication:
         #     await asyncio.sleep(0.05)
         # print("End task communication")
         while (True):
-            protocol_interpreter.PI_trasmit_message()
-            await asyncio.sleep(0.005)
+            if protocol_interpreter.PI_get_RI() != True:
+                protocol_interpreter.PI_trasmit_message()
+                await asyncio.sleep(0.01)
+            else:
+                await asyncio.sleep(0.005)
         print("End task communication")
 
     # Função assincrona que monitora o recebimento de dados pela serial
@@ -327,18 +337,36 @@ class Communication:
         # print('Task Monitoring Receive')
         protocol_interpreter.PI_set_serial_timeout(0.001)
         while (True):
-            data_serial, size = protocol_interpreter.PI_receive_data()
-            if size > 0:
-                # print(data_serial)
+            try:
+                try:
+                    data_serial, size = protocol_interpreter.PI_receive_data()
+                except Exception as e:
+                    print("COM tentando ler" + str(e))
+                if size > 0:
+                    print(data_serial)
                 for data_byte in data_serial:
-                    protocol_interpreter.PI_protocol_organize_receive_data(data_byte)
+                    try:
+                        protocol_interpreter.PI_protocol_organize_receive_data(data_byte)
+                    except Exception as e:
+                        print("COM organizando" + str(e))
 
-                    if protocol_interpreter.PI_message_arrived() is True:
+                if protocol_interpreter.PI_message_arrived() is True:
+                    try:
                         data, size, id_source = protocol_interpreter.PI_read_message()
-                        #print("Data: " + str(data) + " Size: " + str(size) + " Id: " + str(id_source))
+                    except Exception as e:
+                        print("COM lendo msg" + str(e))
+                    # print("Data: " + str(data) + " Size: " + str(size) + " Id: " + str(id_source))
+                    try:
                         if self.process_data_read(data, size, id_source) is False:
                             print("ERROR Tag")
-            await asyncio.sleep(0.005)
+                    except Exception as e:
+                        print("COM processando msg" + str(e))
+                await asyncio.sleep(0.005)
+            except Exception as e:
+               # i=0
+                print("COM Geral"+ str(e))
+
+
         print("End task receive serial")
 
     async def print_test_async(self):
